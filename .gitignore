@@ -1,0 +1,59 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.env
+
+# Python 数据和输出
+backend/data/
+backend/uploads/*
+backend/outputs/*
+!backend/uploads/.gitkeep
+!backend/outputs/.gitkeep
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend-vue/node_modules/
+frontend-vue/dist/
+frontend-vue/.vite/
+frontend-vue/.env
+frontend-vue/.env.local
+frontend-vue/.env.*.local
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+logs/
+*.log
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 根目录不应该有的文件（防止误操作）
+/node_modules/
+/package-lock.json
+/package.json

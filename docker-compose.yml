@@ -1,0 +1,20 @@
+services:
+  flow-test-engine:
+    # 使用本地构建的镜像
+    image: ghcr.io/linlee996/flow_test_engine:latest
+    container_name: flow-test-engine
+    ports:
+      - "8080:8080"
+    volumes:
+      # 数据持久化
+      - ./flow_test_engine/data:/app/backend/data
+      - ./flow_test_engine/uploads:/app/backend/uploads
+      - ./flow_test_engine/outputs:/app/backend/outputs
+      - ./flow_test_engine/logs:/app/backend/logs
+    environment:
+      - TZ=Asia/Shanghai
+      # Docker 卷挂载目录
+      - DATABASE_URL=sqlite+aiosqlite:////app/backend/data/flow_test.db
+      - UPLOAD_DIR=/app/backend/uploads
+      - OUTPUT_DIR=/app/backend/outputs
+    restart: unless-stopped
