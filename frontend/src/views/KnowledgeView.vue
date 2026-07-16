@@ -357,13 +357,14 @@ p {
 }
 
 .project-item:hover {
-  border-color: var(--color-border);
-  background: rgba(79, 124, 255, 0.06);
+  border-color: #b2ccff;
+  background: var(--color-primary-light);
 }
 
 .project-item.active {
-  border-color: rgba(79, 124, 255, 0.3);
-  background: rgba(79, 124, 255, 0.12);
+  border-color: #84adfa;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .project-name,
@@ -406,8 +407,8 @@ p {
 .project-info > div {
   padding: 14px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
 }
 
 .project-info span,

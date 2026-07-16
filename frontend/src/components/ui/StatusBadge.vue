@@ -21,5 +21,14 @@ const meta = computed(() => {
 </script>
 
 <template>
-  <el-tag :type="meta.type" effect="light">{{ meta.label }}</el-tag>
+  <el-tag class="status-badge" :type="meta.type" effect="light">{{ meta.label }}</el-tag>
 </template>
+
+<style scoped>
+.status-badge {
+  min-width: 64px;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+}
+</style>

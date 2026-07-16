@@ -38,34 +38,21 @@ cd backend && uv run pytest path/to/test_file.py::test_name
 
 No project test files are currently checked in, so the suite command exits with pytest's “no tests collected” status until tests are added. There is no backend lint/format command configured in `pyproject.toml`; add one before documenting or relying on it.
 
-### React frontend
-
-```bash
-cd frontend
-npm install
-npm run dev       # Vite dev server on localhost:5173, proxies /api to localhost:8080
-npm run build     # TypeScript build + Vite production build
-npm run lint
-npm run preview
-```
-
-There is no frontend test script configured in `frontend/package.json`.
-
 ### Vue frontend
 
 ```bash
-cd frontend-vue
+cd frontend
 npm install
 npm run dev       # Vite dev server on localhost:5174, proxies /api to localhost:8080
 npm run build     # vue-tsc + Vite production build
 npm run preview
 ```
 
-There is no Vue frontend test script configured in `frontend-vue/package.json`.
+There is no Vue frontend test script configured in `frontend/package.json`.
 
 ## High-level architecture
 
-This is a FastAPI + LangGraph application for generating test cases from requirement documents. The backend owns authentication, document parsing, LLM/provider configuration, task execution, RAG knowledge-base storage, and Excel/Markdown outputs. There are two frontend apps: the original Vite React SPA in `frontend/` and an incremental Vite Vue SPA in `frontend-vue/`; both call the backend under `/api/v1`.
+This is a FastAPI + LangGraph application for generating test cases from requirement documents. The backend owns authentication, document parsing, LLM/provider configuration, task execution, RAG knowledge-base storage, and Excel/Markdown outputs. The Vite Vue SPA in `frontend/` calls the backend under `/api/v1`.
 
 ### Backend runtime and routing
 
@@ -112,8 +99,6 @@ Task progress, cancellation markers, and suspended workflow instances are held i
 
 ### Frontend structure
 
-- `frontend/src/App.tsx` holds the original React app's top-level auth state, active tab state, task pagination, task polling every 5 seconds, and modal wiring.
-- `frontend/src/services/api.ts` is the React app's central Axios API layer. It uses `baseURL: '/api/v1'`, attaches the JWT token from `localStorage`, and redirects to `/` on 401.
-- `frontend-vue/` is an incremental Vue 3 + Vite + TypeScript replacement. The task-generation home page and LLM configuration page have been reimplemented; verify the remaining management pages before treating the Vue migration as complete.
-- `frontend-vue/src/services/api.ts` mirrors the backend contract, including the model-configuration APIs and `llmConfigService.getModelGroups()` for task creation.
-- Vite dev mode proxies `/api` to `http://localhost:8080` in both frontends. The Dockerfile currently builds the React frontend only; update it before expecting Vue output in the container image.
+- `frontend/` is the Vue 3 + Vite + TypeScript application. Its task-generation home page and LLM configuration page have been reimplemented; verify the remaining management pages before treating the Vue migration as complete.
+- `frontend/src/services/api.ts` mirrors the backend contract, including the model-configuration APIs and `llmConfigService.getModelGroups()` for task creation.
+- Vite dev mode proxies `/api` to `http://localhost:8080`. The Dockerfile builds the Vue frontend into the container image.

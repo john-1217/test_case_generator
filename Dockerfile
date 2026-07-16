@@ -1,11 +1,11 @@
 # 阶段1: 构建前端
 FROM node:20-alpine AS frontend-builder
 
-WORKDIR /app/frontend-vue
-COPY frontend-vue/package*.json ./
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
 RUN npm ci --production=false
 
-COPY frontend-vue/ ./
+COPY frontend/ ./
 RUN npm run build
 
 # 阶段2: 构建 Python 环境
@@ -61,7 +61,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # 从前端构建阶段复制静态文件
-COPY --from=frontend-builder /app/frontend-vue/dist /app/static
+COPY --from=frontend-builder /app/frontend/dist /app/static
 
 # 从后端构建阶段复制 Python 环境和代码
 COPY --from=backend-builder /app/backend /app/backend

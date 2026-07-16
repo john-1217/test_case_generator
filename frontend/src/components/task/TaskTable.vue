@@ -159,10 +159,11 @@ async function deleteTask(task: Task) {
 </template>
 
 <style scoped>
-.task-card { padding: 10px; }
+.task-card { overflow: hidden; }
 .loading-state { padding: 24px; }
 .task-table { border-radius: var(--radius-md); overflow: hidden; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions :deep(.el-button + .el-button) { margin-left: 0; }
 .row-note { margin-top: 8px; font-size: 12px; }
 .error { color: var(--color-danger); }
 .clarify { color: var(--color-warning); }
