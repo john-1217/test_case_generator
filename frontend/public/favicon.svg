@@ -1,27 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="Test Case Generator">
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+    <linearGradient id="document-gradient" x1="5" y1="5" x2="39" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#A78BFA"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <linearGradient id="badge-gradient" x1="26" y1="26" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
   </defs>
-  
-  <!-- Background Circle (Optional, removed for cleaner look or kept subtle) -->
-  <!-- <circle cx="50" cy="50" r="48" fill="none" stroke="url(#grad)" stroke-width="2" /> -->
-  
-  <!-- Cool Lightning Bolt -->
-  <path d="M55 5 L25 50 L50 50 L40 95 L85 40 L60 40 Z" 
-        fill="url(#grad)" 
-        stroke="white" 
-        stroke-width="2" 
-        stroke-linejoin="round"
-        filter="url(#glow)"
-  />
+  <path d="M10 5H28L36 13V37C36 40.314 33.314 43 30 43H10C6.686 43 4 40.314 4 37V11C4 7.686 6.686 5 10 5Z" fill="url(#document-gradient)"/>
+  <path d="M28 5V12C28 12.552 28.448 13 29 13H36" fill="white" opacity=".34"/>
+  <path d="M11 20H29M11 27H29M11 34H22" stroke="white" stroke-width="2.4" stroke-linecap="round" opacity=".94"/>
+  <circle cx="36" cy="36" r="10" fill="url(#badge-gradient)" stroke="white" stroke-width="2.4"/>
+  <path d="M31 36L34.3 39.3L41 32.6" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

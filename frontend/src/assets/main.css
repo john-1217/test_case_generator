@@ -1,0 +1,183 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #182230;
+  background: #f5f7fa;
+  font-synthesis: none;
+
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-strong: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-light: #eff6ff;
+  --color-text-primary: #182230;
+  --color-text-secondary: #475467;
+  --color-text-muted: #667085;
+  --color-border: #e4e7ec;
+  --color-border-strong: #d0d5dd;
+  --color-danger: #d92d20;
+  --color-warning: #dc6803;
+  --color-success: #039855;
+  --gradient-primary: var(--color-primary);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 12px 24px rgba(16, 24, 40, 0.12);
+  --glass-bg: var(--color-surface);
+  --glass-border: var(--color-border);
+  --glass-backdrop: none;
+
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: #7aa4f8;
+  --el-color-primary-light-5: #a8c5fb;
+  --el-color-primary-light-7: #d3e3fd;
+  --el-color-primary-light-8: #e5effe;
+  --el-color-primary-light-9: var(--color-primary-light);
+  --el-color-primary-dark-2: var(--color-primary-dark);
+  --el-color-success: var(--color-success);
+  --el-color-warning: var(--color-warning);
+  --el-color-danger: var(--color-danger);
+  --el-text-color-primary: var(--color-text-primary);
+  --el-text-color-regular: var(--color-text-secondary);
+  --el-text-color-secondary: var(--color-text-muted);
+  --el-border-color: var(--color-border);
+  --el-border-color-light: #eaecf0;
+  --el-border-color-lighter: #f2f4f7;
+  --el-fill-color: var(--color-surface-muted);
+  --el-fill-color-light: #f9fafb;
+  --el-fill-color-blank: var(--color-surface);
+  --el-bg-color: var(--color-surface);
+  --el-bg-color-page: var(--color-bg);
+  --el-border-radius-base: var(--radius-sm);
+  --el-border-radius-small: 4px;
+  --el-box-shadow-light: var(--shadow-md);
+  --el-box-shadow: var(--shadow-lg);
+}
+
+* { box-sizing: border-box; }
+html, body, #app { min-height: 100%; margin: 0; }
+body {
+  min-width: 320px;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; }
+
+.glass-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+}
+
+.el-button {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.el-button--default:hover,
+.el-button--default:focus-visible {
+  color: var(--color-primary);
+  border-color: #9fc0fb;
+  background: var(--color-primary-light);
+}
+.el-button--danger.is-plain {
+  color: var(--color-danger);
+  border-color: #fecdca;
+  background: #fffbfa;
+}
+.el-button--danger.is-plain:hover {
+  color: #fff;
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+  box-shadow: 0 0 0 1px var(--color-border) inset;
+}
+.el-input__wrapper:hover,
+.el-textarea__inner:hover,
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--color-border-strong) inset;
+}
+.el-input__wrapper.is-focus,
+.el-textarea__inner:focus,
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--color-primary) inset;
+}
+.el-table {
+  --el-table-header-bg-color: #f9fafb;
+  --el-table-tr-bg-color: var(--color-surface);
+  --el-table-row-hover-bg-color: #f8fbff;
+  --el-table-border-color: var(--color-border);
+  --el-table-header-text-color: var(--color-text-secondary);
+  --el-table-text-color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+}
+.el-table th.el-table__cell {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.el-table td.el-table__cell,
+.el-table th.el-table__cell { padding: 12px 0; }
+.el-tag { font-weight: 600; }
+.el-pagination { --el-pagination-button-bg-color: var(--color-surface); }
+.el-dialog {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.el-dialog__header {
+  margin-right: 0;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.el-dialog__title { font-weight: 700; color: var(--color-text-primary); }
+.el-dialog__body { padding: 20px 24px; }
+.el-dialog__footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--color-border);
+}
+.el-message-box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.markdown-body {
+  color: var(--color-text-primary);
+  line-height: 1.75;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--color-border);
+  padding: 8px 10px;
+  text-align: left;
+}
+.markdown-body th { background: var(--color-surface-muted); }
+.markdown-body code {
+  background: #f2f4f7;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+@media (max-width: 640px) {
+  .el-dialog { --el-dialog-width: calc(100% - 24px); }
+  .el-dialog__header { padding: 16px 18px 14px; }
+  .el-dialog__body { padding: 18px; }
+  .el-dialog__footer { padding: 14px 18px 18px; }
+}

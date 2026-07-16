@@ -453,28 +453,28 @@ async function handleTestModel(modelName: string) {
   gap: 12px;
   width: 100%;
   padding: 12px;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--color-surface);
   cursor: pointer;
   color: var(--color-text-primary);
   text-align: left;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .provider-item:hover {
-  border-color: rgba(79, 124, 255, 0.28);
-  background: rgba(79, 124, 255, 0.08);
+  border-color: #b2ccff;
+  background: var(--color-primary-light);
 }
 
 .provider-item.active {
-  background: var(--gradient-primary);
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(79, 124, 255, 0.22);
+  border-color: #84adfa;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .provider-item.configured:not(.active) {
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: #a6f4c5;
 }
 
 .provider-icon {
@@ -525,7 +525,7 @@ async function handleTestModel(modelName: string) {
 }
 
 .provider-item.active .provider-copy small {
-  color: rgba(255, 255, 255, 0.76);
+  color: var(--color-primary-dark);
 }
 
 .status-dot {
@@ -573,10 +573,11 @@ async function handleTestModel(modelName: string) {
 
 .form-card,
 .model-section {
-  padding: 18px;
+  padding: 20px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .form-card {
@@ -674,8 +675,8 @@ async function handleTestModel(modelName: string) {
   gap: 14px;
   padding: 10px 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
 }
 
 .model-main {
@@ -701,5 +702,22 @@ async function handleTestModel(modelName: string) {
   text-align: center;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .provider-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .llm-config { padding: 18px; }
+  .page-header,
+  .section-header,
+  .model-item { align-items: flex-start; flex-direction: column; }
+  .add-model-row { align-items: stretch; flex-direction: column; }
+  .model-actions { width: 100%; }
 }
 </style>

@@ -187,11 +187,13 @@ p {
 
 .template-card {
   min-height: 220px;
-  padding: 22px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
+
+.template-card:hover { box-shadow: var(--shadow-md); }
 
 .card-header {
   display: flex;
@@ -219,6 +221,8 @@ p {
 
 .card-actions {
   margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
   justify-content: flex-end;
 }
 

@@ -21,12 +21,12 @@ frontend/.vite/
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local
-frontend-vue/node_modules/
-frontend-vue/dist/
-frontend-vue/.vite/
-frontend-vue/.env
-frontend-vue/.env.local
-frontend-vue/.env.*.local
+frontend-react/node_modules/
+frontend-react/dist/
+frontend-react/.vite/
+frontend-react/.env
+frontend-react/.env.local
+frontend-react/.env.*.local
 
 # IDE 配置
 .idea/
