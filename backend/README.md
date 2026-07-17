@@ -1,4 +1,4 @@
-# Flow Test Engine - Python Backend
+# Test Case Generator - Python Backend
 
 基于 LangGraph + Docling 的智能测试用例生成引擎。
 
@@ -52,7 +52,19 @@ cp .env.example .env
 # 编辑 .env 配置 OpenAI API Key
 ```
 
-### 3. 启动服务
+### 3. 配置本地 Embedding（可选）
+
+知识库支持本地模型和在线模型，默认使用本地模型，如 `BAAI/bge-small-zh-v1.5`。手动恢复模型文件后，在未提交的 `.env` 中设置：
+
+```dotenv
+LOCAL_EMBEDDING_MODEL_PATH=/absolute/path/to/bge-small-zh-v1.5/snapshots/<revision>
+LOCAL_EMBEDDING_DEVICE=cpu
+LOCAL_EMBEDDING_LOCAL_FILES_ONLY=true
+```
+
+模型目录缺失时不会自动下载，仍可继续使用远程 Embedding 模型配置。
+
+### 4. 启动服务
 
 ```bash
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080

@@ -28,6 +28,10 @@ const form = reactive({
 
 const title = computed(() => (props.mode === 'edit' ? '编辑知识库项目' : '创建知识库项目'))
 const configuredProviders = computed(() => providers.value.filter((provider) => provider.is_configured))
+const selectedProviderInfo = computed(() =>
+  providers.value.find((provider) => provider.provider === form.embeddingProvider) ?? null,
+)
+const selectedProviderIsLocal = computed(() => selectedProviderInfo.value?.is_local ?? false)
 const embeddingLocked = computed(() => props.mode === 'edit' && (props.project?.doc_count ?? 0) > 0)
 
 watch(
@@ -150,8 +154,10 @@ async function save() {
         show-icon
         class="provider-alert"
       >
-        <template #title>暂无已配置且支持 Embedding 的厂商</template>
+        <template #title>暂无可用的 Embedding 厂商</template>
+        请先恢复并配置本地 BGE 模型，或
         <el-link type="primary" @click="goToLlmConfig">前往模型配置</el-link>
+        配置远程 Embedding 厂商。
       </el-alert>
 
       <el-form-item label="Embedding 厂商" required>
@@ -176,10 +182,14 @@ async function save() {
         <el-input
           v-model="form.embeddingModel"
           :disabled="embeddingLocked"
+          :readonly="selectedProviderIsLocal"
           maxlength="200"
           placeholder="例如：text-embedding-3-small"
         />
-        <div v-if="embeddingLocked" class="field-hint">
+        <div v-if="selectedProviderIsLocal" class="field-hint">
+          本地 BGE 模型路径由服务端 LOCAL_EMBEDDING_MODEL_PATH 配置，无需 API Key。
+        </div>
+        <div v-else-if="embeddingLocked" class="field-hint">
           项目已有文档，删除全部文档后才能修改 Embedding 配置。
         </div>
       </el-form-item>

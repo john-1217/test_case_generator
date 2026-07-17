@@ -43,6 +43,9 @@ Thumbs.db
 logs/
 *.log
 
+# 本地模型与 Hugging Face 缓存
+/models/
+
 # 数据库文件
 *.db
 *.sqlite

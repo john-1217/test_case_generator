@@ -16,7 +16,11 @@ from app.models import Task, TaskStatus, CaseTemplate, ProviderConfig, Project
 from app.schemas import TaskCreate, TaskClarify, TaskResponse, TaskListResponse
 from app.services import DocumentParser, CaseGeneratorWorkflow, ResultExtractor
 from app.services.knowledge_service import KnowledgeBaseService
-from app.services.embedding_service import create_embeddings
+from app.services.embedding_service import (
+    create_embeddings,
+    is_local_embedding_provider,
+    local_embedding_status,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -572,21 +576,30 @@ async def _retrieve_rag_context(
         if not project or project.doc_count == 0:
             return ""
 
-        # 获取 Embedding 厂商配置
-        result = await db.execute(
-            select(ProviderConfig).where(ProviderConfig.provider == project.embedding_provider)
-        )
-        provider_config = result.scalar_one_or_none()
-        if not provider_config:
-            logger.warning(f"Embedding provider {project.embedding_provider} not configured")
-            return ""
+        if is_local_embedding_provider(project.embedding_provider):
+            is_ready, message = local_embedding_status()
+            if not is_ready:
+                logger.warning(f"Local embedding model unavailable: {message}")
+                return ""
+            embeddings = create_embeddings(
+                provider=project.embedding_provider,
+                model=project.embedding_model,
+            )
+        else:
+            result = await db.execute(
+                select(ProviderConfig).where(ProviderConfig.provider == project.embedding_provider)
+            )
+            provider_config = result.scalar_one_or_none()
+            if not provider_config:
+                logger.warning(f"Embedding provider {project.embedding_provider} not configured")
+                return ""
 
-        embeddings = create_embeddings(
-            provider=project.embedding_provider,
-            api_key=provider_config.api_key,
-            base_url=provider_config.base_url,
-            model=project.embedding_model,
-        )
+            embeddings = create_embeddings(
+                provider=project.embedding_provider,
+                api_key=provider_config.api_key,
+                base_url=provider_config.base_url,
+                model=project.embedding_model,
+            )
 
         # ========== 第 1 步：用轻量 LLM 提取需求文档中的功能模块主题 ==========
         from app.services.case_generator import create_llm

@@ -1,5 +1,5 @@
 [project]
-name = "flow-test-engine"
+name = "test-case-generator"
 version = "0.1.0"
 description = "智能测试用例生成引擎 - LangGraph + PyMuPDF 驱动"
 readme = "README.md"
@@ -27,6 +27,7 @@ dependencies = [
     "langchain-text-splitters>=0.3.0",
     "pymupdf>=1.24.0",
     "python-docx>=1.1.0",
+    "sentence-transformers>=3.0.0",
 ]
 
 [build-system]

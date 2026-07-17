@@ -13,8 +13,8 @@ frontend-react/dist
 *.dll
 *.so
 *.dylib
-flow_test_engine
-flow_test_engine_linux_amd64
+test_case_generator
+test_case_generator_linux_amd64
 dist/
 
 # IDE 配置
@@ -36,6 +36,9 @@ nohup.out
 # 临时文件
 tmp/
 temp/
+
+# 本地模型与 Hugging Face 缓存
+models/
 
 # Docker 相关（在构建时不需要）
 Dockerfile*

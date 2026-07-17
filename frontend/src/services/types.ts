@@ -76,6 +76,8 @@ export interface EmbeddingProviderInfo {
   name: string
   default_model: string
   is_configured: boolean
+  is_local: boolean
+  availability_message?: string | null
 }
 
 export interface KnowledgeSearchResult {

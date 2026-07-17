@@ -181,6 +181,19 @@ ADMIN_PASSWORD=admin
 | `CHROMA_DIR` | `backend/data/chroma/` | ChromaDB 向量数据目录 |
 | `MAX_FILE_SIZE` | `52428800` | 单文件最大字节数，默认 50MB |
 
+### 本地 Embedding
+
+知识库默认支持本地 `BAAI/bge-small-zh-v1.5`，不需要 API Key。请先手动恢复模型文件，再在未提交的 `backend/.env` 中配置：
+
+```dotenv
+LOCAL_EMBEDDING_ENABLED=true
+LOCAL_EMBEDDING_MODEL_PATH=/absolute/path/to/bge-small-zh-v1.5/snapshots/<revision>
+LOCAL_EMBEDDING_DEVICE=cpu
+LOCAL_EMBEDDING_LOCAL_FILES_ONLY=true
+```
+
+模型路径不存在或模型文件不完整时，知识库会明确提示错误且不会自动下载。Docker 部署需要把 Hugging Face cache 根目录以只读卷挂载到容器，并将 `LOCAL_EMBEDDING_CONTAINER_MODEL_PATH` 指向容器内的 snapshot 路径；模型和缓存不得提交到 Git。
+
 ## API 概览
 
 所有业务接口使用 `/api/v1` 前缀，并通过 Bearer Token 鉴权。

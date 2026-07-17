@@ -16,13 +16,71 @@ from app.schemas.knowledge import (
 )
 from app.services.knowledge_service import KnowledgeBaseService
 from app.services.embedding_service import (
-    create_embeddings, is_embedding_supported,
     EMBEDDING_PROVIDER_DEFAULTS,
+    LOCAL_HUGGINGFACE_MODEL,
+    create_embeddings,
+    is_local_embedding_provider,
+    local_embedding_status,
 )
 
 router = APIRouter()
 settings = get_settings()
 _kb_service = KnowledgeBaseService()
+
+
+async def _validate_embedding_configuration(
+    db: AsyncSession,
+    provider: str,
+    model: str,
+) -> tuple[str, ProviderConfig | None]:
+    """验证项目 Embedding 配置；本地模型不需要 ProviderConfig。"""
+    normalized_provider = provider.lower()
+    info = EMBEDDING_PROVIDER_DEFAULTS.get(normalized_provider)
+    if not info or not info["supported"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"厂商 {provider} 不支持 Embedding API",
+        )
+
+    if is_local_embedding_provider(normalized_provider):
+        if model != LOCAL_HUGGINGFACE_MODEL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"本地 Embedding 仅支持模型 {LOCAL_HUGGINGFACE_MODEL}",
+            )
+        is_ready, message = local_embedding_status()
+        if not is_ready:
+            raise HTTPException(status_code=400, detail=message)
+        return normalized_provider, None
+
+    result = await db.execute(
+        select(ProviderConfig).where(ProviderConfig.provider == normalized_provider)
+    )
+    provider_config = result.scalar_one_or_none()
+    if not provider_config:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Embedding 厂商 {provider} 未配置，请先在模型配置中添加",
+        )
+    return normalized_provider, provider_config
+
+
+async def _resolve_embeddings(
+    db: AsyncSession,
+    provider: str,
+    model: str,
+):
+    """根据项目配置创建本地或远程 Embedding 实例。"""
+    normalized_provider, provider_config = await _validate_embedding_configuration(db, provider, model)
+    if is_local_embedding_provider(normalized_provider):
+        return create_embeddings(provider=normalized_provider, model=model)
+    assert provider_config is not None
+    return create_embeddings(
+        provider=normalized_provider,
+        api_key=provider_config.api_key,
+        base_url=provider_config.base_url,
+        model=model,
+    )
 
 
 # ========== Embedding 厂商信息 ==========
@@ -37,13 +95,24 @@ async def get_embedding_providers(db: AsyncSession = Depends(get_db)):
 
     providers = []
     for provider, info in EMBEDDING_PROVIDER_DEFAULTS.items():
-        if info["supported"]:
-            providers.append(EmbeddingProviderInfo(
-                provider=provider,
-                name=info["name"],
-                default_model=info["default_model"],
-                is_configured=provider in configured_providers,
-            ))
+        if not info["supported"]:
+            continue
+
+        is_local = info.get("is_local", False)
+        if is_local:
+            is_configured, availability_message = local_embedding_status()
+        else:
+            is_configured = provider in configured_providers
+            availability_message = None if is_configured else "请先在模型配置中保存该厂商的 API Key"
+
+        providers.append(EmbeddingProviderInfo(
+            provider=provider,
+            name=info["name"],
+            default_model=info["default_model"],
+            is_configured=is_configured,
+            is_local=is_local,
+            availability_message=availability_message,
+        ))
 
     return providers
 
@@ -58,26 +127,16 @@ async def create_project(data: ProjectCreate, db: AsyncSession = Depends(get_db)
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="项目名称已存在")
 
-    # 检查 Embedding 厂商是否已配置
-    result = await db.execute(
-        select(ProviderConfig).where(ProviderConfig.provider == data.embedding_provider)
+    embedding_provider, _ = await _validate_embedding_configuration(
+        db,
+        data.embedding_provider,
+        data.embedding_model,
     )
-    if not result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Embedding 厂商 {data.embedding_provider} 未配置，请先在模型配置中添加"
-        )
-
-    if not is_embedding_supported(data.embedding_provider):
-        raise HTTPException(
-            status_code=400,
-            detail=f"厂商 {data.embedding_provider} 不支持 Embedding API"
-        )
 
     project = Project(
         name=data.name,
         description=data.description,
-        embedding_provider=data.embedding_provider,
+        embedding_provider=embedding_provider,
         embedding_model=data.embedding_model,
     )
     db.add(project)
@@ -139,7 +198,18 @@ async def update_project(
             detail="项目已有文档，修改 Embedding 配置会导致已有向量失效。请先删除所有文档后再修改。"
         )
 
-    for field, value in data.model_dump(exclude_unset=True).items():
+    updates = data.model_dump(exclude_unset=True)
+    if embedding_changed:
+        target_provider = updates.get("embedding_provider", project.embedding_provider)
+        target_model = updates.get("embedding_model", project.embedding_model)
+        normalized_provider, _ = await _validate_embedding_configuration(
+            db,
+            target_provider,
+            target_model,
+        )
+        updates["embedding_provider"] = normalized_provider
+
+    for field, value in updates.items():
         setattr(project, field, value)
 
     await db.commit()
@@ -249,20 +319,11 @@ async def _process_document(
             return
 
         try:
-            # 获取厂商 API 配置
-            result = await db.execute(
-                select(ProviderConfig).where(ProviderConfig.provider == embedding_provider)
-            )
-            provider_config = result.scalar_one_or_none()
-            if not provider_config:
-                raise ValueError(f"Embedding 厂商 {embedding_provider} 配置不存在")
-
-            # 创建 Embeddings 实例
-            embeddings = create_embeddings(
-                provider=embedding_provider,
-                api_key=provider_config.api_key,
-                base_url=provider_config.base_url,
-                model=embedding_model,
+            # 创建本地或远程 Embeddings 实例
+            embeddings = await _resolve_embeddings(
+                db,
+                embedding_provider,
+                embedding_model,
             )
 
             # 在线程池中执行（包含同步的文档解析和 Embedding 计算）
@@ -348,19 +409,10 @@ async def search_knowledge(
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
 
-    # 获取厂商配置
-    result = await db.execute(
-        select(ProviderConfig).where(ProviderConfig.provider == project.embedding_provider)
-    )
-    provider_config = result.scalar_one_or_none()
-    if not provider_config:
-        raise HTTPException(status_code=400, detail="Embedding 厂商配置不存在")
-
-    embeddings = create_embeddings(
-        provider=project.embedding_provider,
-        api_key=provider_config.api_key,
-        base_url=provider_config.base_url,
-        model=project.embedding_model,
+    embeddings = await _resolve_embeddings(
+        db,
+        project.embedding_provider,
+        project.embedding_model,
     )
 
     # 在线程池中执行检索
