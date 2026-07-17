@@ -14,7 +14,7 @@ docker-compose logs -f
 docker-compose down
 
 # Build the local multi-stage image from Dockerfile
-docker build -t flow-test-engine .
+docker build -t test-case-generator .
 ```
 
 Docker serves the combined app on `http://localhost:8080`; API docs are at `http://localhost:8080/docs` and health check at `/health`.
@@ -82,14 +82,14 @@ Task progress, cancellation markers, and suspended workflow instances are held i
 ### Documents, outputs, and persistence
 
 - `DocumentParser` uses PyMuPDF for PDFs, `python-docx` for DOC/DOCX, and direct text reads for TXT/MD. PDF parsing extracts embedded text, valid tables, and non-tiny images; it does not perform OCR.
-- Default local state lives under `backend/data/`, `backend/uploads/`, and `backend/outputs/`. Docker Compose instead mounts `./flow_test_engine/data`, `./flow_test_engine/uploads`, `./flow_test_engine/outputs`, and logs into the container.
+- Default local state lives under `backend/data/`, `backend/uploads/`, and `backend/outputs/`. Docker Compose instead mounts `./test_case_generator/data`, `./test_case_generator/uploads`, `./test_case_generator/outputs`, and logs into the container.
 - Generated outputs in `OUTPUT_DIR` include parsed document Markdown, full workflow Markdown, summary Markdown, and `.xlsx` files.
 
 ### LLM provider and embedding configuration
 
 - Provider defaults and ordering are in `backend/app/models/llm_config.py` for `openai`, `gemini`, `anthropic`, `deepseek`, `kimi`, and `openrouter`.
 - `create_llm()` in `case_generator.py` uses OpenAI-compatible `ChatOpenAI` for OpenAI/DeepSeek/Kimi and has provider-specific branches for Gemini and Anthropic. The optional packages for those branches are not listed in `backend/pyproject.toml`; Gemini falls back to OpenAI-compatible mode, while Anthropic raises an import error if `langchain-anthropic` is unavailable.
-- Knowledge-base embeddings are created in `backend/app/services/embedding_service.py`. Only OpenAI, Gemini, and OpenRouter are marked as embedding-supported.
+- Knowledge-base embeddings are created in `backend/app/services/embedding_service.py`. `local_huggingface` uses an explicitly configured local `BAAI/bge-small-zh-v1.5` snapshot without an API key; OpenAI, Gemini, and OpenRouter remain available as remote providers. The local model never downloads automatically and must not be committed.
 
 ### Knowledge-base / RAG flow
 

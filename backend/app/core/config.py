@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     # ChromaDB 配置
     chroma_dir: str = str(_BACKEND_DIR / "data" / "chroma")
 
+    # 本地 HuggingFace Embedding 配置（模型路径必须由运行环境提供）
+    local_embedding_enabled: bool = True
+    local_embedding_model_path: str = ""
+    local_embedding_device: str = "cpu"
+    local_embedding_batch_size: int = 32
+    local_embedding_local_files_only: bool = True
+
     # 内置管理员账号
     admin_username: str = "admin"
     admin_password: str = "admin"

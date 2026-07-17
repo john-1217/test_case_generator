@@ -1,20 +1,30 @@
 services:
-  flow-test-engine:
-    # 使用本地构建的镜像
-    image: ghcr.io/linlee996/flow_test_engine:latest
-    container_name: flow-test-engine
+  test-case-generator:
+    # 构建本地镜像以包含本地 Embedding 依赖
+    build:
+      context: .
+    image: ghcr.io/john-1217/test_case_generator:latest
+    container_name: test-case-generator
     ports:
       - "8080:8080"
     volumes:
       # 数据持久化
-      - ./flow_test_engine/data:/app/backend/data
-      - ./flow_test_engine/uploads:/app/backend/uploads
-      - ./flow_test_engine/outputs:/app/backend/outputs
-      - ./flow_test_engine/logs:/app/backend/logs
+      - ./test_case_generator/data:/app/backend/data
+      - ./test_case_generator/uploads:/app/backend/uploads
+      - ./test_case_generator/outputs:/app/backend/outputs
+      - ./test_case_generator/logs:/app/backend/logs
+      # 挂载 Hugging Face cache 根目录；不要只挂载 snapshots 子目录（其中包含 blobs 软链接）
+      - ${LOCAL_EMBEDDING_HOST_PATH:-./models/huggingface}:/models/huggingface:ro
     environment:
       - TZ=Asia/Shanghai
       # Docker 卷挂载目录
       - DATABASE_URL=sqlite+aiosqlite:////app/backend/data/flow_test.db
       - UPLOAD_DIR=/app/backend/uploads
       - OUTPUT_DIR=/app/backend/outputs
+      # 本地 BGE Embedding；LOCAL_EMBEDDING_HOST_PATH 和容器内模型路径需由部署环境提供
+      - LOCAL_EMBEDDING_ENABLED=${LOCAL_EMBEDDING_ENABLED:-true}
+      - LOCAL_EMBEDDING_MODEL_PATH=${LOCAL_EMBEDDING_CONTAINER_MODEL_PATH:-}
+      - LOCAL_EMBEDDING_DEVICE=${LOCAL_EMBEDDING_DEVICE:-cpu}
+      - LOCAL_EMBEDDING_BATCH_SIZE=${LOCAL_EMBEDDING_BATCH_SIZE:-32}
+      - LOCAL_EMBEDDING_LOCAL_FILES_ONLY=true
     restart: unless-stopped

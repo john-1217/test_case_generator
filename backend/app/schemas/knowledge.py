@@ -79,3 +79,5 @@ class EmbeddingProviderInfo(BaseModel):
     name: str
     default_model: str
     is_configured: bool
+    is_local: bool = False
+    availability_message: Optional[str] = None
