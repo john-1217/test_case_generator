@@ -5,10 +5,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from app.core import get_settings, init_db
-from app.api import router
+from app.core.config import configure_langsmith_tracing, get_settings
 
 settings = get_settings()
+configure_langsmith_tracing(settings)
+
+from app.api import router
+from app.core.database import init_db
 
 
 @asynccontextmanager

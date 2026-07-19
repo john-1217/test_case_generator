@@ -194,6 +194,20 @@ LOCAL_EMBEDDING_LOCAL_FILES_ONLY=true
 
 模型路径不存在或模型文件不完整时，知识库会明确提示错误且不会自动下载。Docker 部署需要把 Hugging Face cache 根目录以只读卷挂载到容器，并将 `LOCAL_EMBEDDING_CONTAINER_MODEL_PATH` 指向容器内的 snapshot 路径；模型和缓存不得提交到 Git。
 
+### LangSmith Tracing
+
+LangSmith tracing 默认关闭。若要在非生产项目中排查 LangGraph 工作流，请在未提交的 `backend/.env` 或部署密钥管理中设置：
+
+```dotenv
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=lsv2_pt_xxx
+LANGSMITH_PROJECT=test-case-generator-dev
+LANGSMITH_HIDE_INPUTS=true
+LANGSMITH_HIDE_OUTPUTS=true
+```
+
+系统会以任务和工作流线程 ID 关联 RAG、四阶段生成及澄清恢复的 trace。输入和输出默认隐藏，以避免向 LangSmith 发送需求文档、RAG 片段、澄清内容和生成结果；请仅在确认数据合规后调整这些开关。API Key 只能通过后端运行环境注入，不得提交、写入 Docker 镜像或发送至前端。
+
 ## API 概览
 
 所有业务接口使用 `/api/v1` 前缀，并通过 Bearer Token 鉴权。

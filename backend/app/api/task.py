@@ -171,6 +171,10 @@ async def _run_workflow(
             return
 
         try:
+            thread_id = task.thread_id or str(uuid.uuid4())
+            task.thread_id = thread_id
+            await db.commit()
+
             # 取消检查辅助函数
             def _check_cancelled():
                 if task_id in _cancelled_tasks:
@@ -184,16 +188,6 @@ async def _run_workflow(
             # Save parsed document to outputs for debugging/verification
             _save_parsed_document(task_id, parsed_doc)
 
-            # RAG 检索：如果关联了项目知识库，从中检索相关上下文
-            rag_context = ""
-            if project_id:
-                _task_progress[task_id] = "rag_retrieval"
-                rag_context = await _retrieve_rag_context(
-                    project_id, parsed_doc.markdown, db,
-                    provider, base_url, api_key, model,
-                )
-                _check_cancelled()
-
             # 创建工作流实例（使用动态 LLM 配置）
             def on_step(step: str):
                 if task_id in _cancelled_tasks:
@@ -206,14 +200,27 @@ async def _run_workflow(
                 model=model,
                 provider=provider,
                 on_step=on_step,
+                task_id=task_id,
+                rag_enabled=project_id is not None,
+                template_enabled=bool(template_prompt),
             )
+
+            # RAG 检索：如果关联了项目知识库，从中检索相关上下文
+            rag_context = ""
+            if project_id:
+                _task_progress[task_id] = "rag_retrieval"
+                rag_context = await _retrieve_rag_context(
+                    project_id, parsed_doc.markdown, db,
+                    provider, base_url, api_key, model,
+                    workflow.get_trace_config(thread_id, "rag_topic_extraction"),
+                )
+                _check_cancelled()
 
             # 启动工作流 - 在线程池中运行避免阻塞事件循环
             _task_progress[task_id] = "phase1_analysis"
-            thread_id, result = await asyncio.to_thread(
-                workflow.start, parsed_doc, template_prompt, rag_context
+            _, result = await asyncio.to_thread(
+                workflow.start, parsed_doc, template_prompt, rag_context, thread_id
             )
-            task.thread_id = thread_id
 
             # 保存工作流实例
             _workflows[thread_id] = workflow
@@ -563,6 +570,7 @@ async def _retrieve_rag_context(
     base_url: str,
     api_key: str,
     model: str,
+    trace_config: dict | None = None,
 ) -> str:
     """
     从项目知识库检索与需求文档相关的上下文。
@@ -637,7 +645,7 @@ async def _retrieve_rag_context(
         ]
 
         # 在线程池中调用 LLM 提取模块主题
-        response = await asyncio.to_thread(llm.invoke, messages)
+        response = await asyncio.to_thread(llm.invoke, messages, config=trace_config)
         topics_text = response.content.strip()
 
         # 解析模块主题列表（按行分割，过滤空行）
@@ -651,7 +659,7 @@ async def _retrieve_rag_context(
             logger.warning("LLM failed to extract topics from document")
             return ""
 
-        logger.info(f"Extracted {len(topics)} topics for RAG retrieval: {topics}")
+        logger.info("Extracted %s topics for RAG retrieval", len(topics))
 
         # ========== 第 2 步：按模块逐个检索向量库 ==========
         seen_chunk_ids = set()  # 用于去重
