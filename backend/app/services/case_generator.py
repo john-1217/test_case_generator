@@ -131,9 +131,17 @@ class CaseGeneratorWorkflow:
         model: str,
         provider: str = "openai",
         on_step: Optional[Callable[[str], None]] = None,
+        task_id: int | None = None,
+        rag_enabled: bool = False,
+        template_enabled: bool = False,
     ):
+        self.provider = provider.lower() if provider else "openai"
+        self.model = model
+        self.task_id = task_id
+        self.rag_enabled = rag_enabled
+        self.template_enabled = template_enabled
         self.llm = create_llm(
-            provider=provider,
+            provider=self.provider,
             api_key=api_key,
             base_url=base_url,
             model=model,
@@ -181,6 +189,28 @@ class CaseGeneratorWorkflow:
         builder.add_edge("phase4_summary", END)
 
         return builder.compile(checkpointer=self.checkpointer)
+
+    def get_trace_config(self, thread_id: str, operation: str) -> dict:
+        """构建不含需求内容的 LangGraph/LangSmith 关联配置。"""
+        metadata = {
+            "thread_id": thread_id,
+            "workflow_operation": operation,
+            "provider": self.provider,
+            "model": self.model,
+            "rag_enabled": self.rag_enabled,
+            "template_enabled": self.template_enabled,
+            "workflow_version": "four-phase-v1",
+        }
+        if self.task_id is not None:
+            metadata["task_id"] = str(self.task_id)
+
+        run_name = "case-generator-rag-topic-extraction" if operation == "rag_topic_extraction" else "case-generator-workflow"
+        return {
+            "configurable": {"thread_id": thread_id},
+            "run_name": run_name,
+            "tags": ["test-case-generator", "four-phase-workflow", f"provider:{self.provider}"],
+            "metadata": metadata,
+        }
 
     # ==================== 多模态内容构建 ====================
 
@@ -478,6 +508,7 @@ class CaseGeneratorWorkflow:
         parsed_doc: ParsedDocument,
         template_prompt: Optional[str] = None,
         rag_context: str = "",
+        thread_id: str | None = None,
     ) -> tuple[str, dict]:
         """
         启动工作流
@@ -486,9 +517,10 @@ class CaseGeneratorWorkflow:
             parsed_doc: 解析后的文档
             template_prompt: 用户自定义模板（仅覆盖 Phase3 的输出格式部分），可为空
             rag_context: RAG 检索到的项目知识库上下文，可为空
+            thread_id: 可选的预分配工作流线程 ID
         """
-        thread_id = str(uuid.uuid4())
-        config = {"configurable": {"thread_id": thread_id}}
+        thread_id = thread_id or str(uuid.uuid4())
+        config = self.get_trace_config(thread_id, "start")
 
         initial_state = {
             "messages": [],
@@ -514,7 +546,7 @@ class CaseGeneratorWorkflow:
 
     def resume(self, thread_id: str, clarification_input: str) -> dict:
         """恢复工作流（用户提供澄清信息后）"""
-        config = {"configurable": {"thread_id": thread_id}}
+        config = self.get_trace_config(thread_id, "resume")
         resume_command = Command(resume={"clarification_input": clarification_input})
         return self.graph.invoke(resume_command, config=config)
 
