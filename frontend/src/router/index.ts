@@ -4,6 +4,7 @@ import TasksView from '../views/TasksView.vue'
 import TemplatesView from '../views/TemplatesView.vue'
 import LlmConfigView from '../views/LlmConfigView.vue'
 import KnowledgeView from '../views/KnowledgeView.vue'
+import RetrievalTestView from '../views/RetrievalTest.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -15,6 +16,7 @@ const router = createRouter({
     { path: '/templates', component: TemplatesView, meta: { title: '模板管理' } },
     { path: '/llm', component: LlmConfigView, meta: { title: '模型配置' } },
     { path: '/knowledge', component: KnowledgeView, meta: { title: '知识库' } },
+    { path: '/retrieval-test', component: RetrievalTestView, meta: { title: '检索测试' } },
   ],
 })
 

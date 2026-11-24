@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Collection, Cpu, Document, Files } from '@element-plus/icons-vue'
+import { Collection, Cpu, DataAnalysis, Document, Files } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import CreateTaskDialog from '../task/CreateTaskDialog.vue'
 import { useAuthStore } from '../../stores/auth'
@@ -19,6 +19,7 @@ const navItems = [
   { path: '/templates', label: '模板管理', icon: Files },
   { path: '/llm', label: '模型配置', icon: Cpu },
   { path: '/knowledge', label: '知识库', icon: Collection },
+  { path: '/retrieval-test', label: '检索测试', icon: DataAnalysis },
 ]
 
 const showCreateButton = computed(() => route.path === '/tasks')
