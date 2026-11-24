@@ -12,6 +12,7 @@
 - **多模型配置**：支持 OpenAI、Gemini、Anthropic、DeepSeek、Kimi、OpenRouter 的模型配置、模型管理和连接测试。
 - **用例模板**：通过自定义字段控制生成表格的输出结构；系统模板仅支持查看。
 - **知识库 RAG**：按项目上传多个关联文档，以向量检索结果补充测试用例生成上下文。
+- **检索测试**：内置业务知识库问答页，BM25 浏览器内检索 + LLM 流式生成，命中知识块可溯源。
 - **结果管理**：查看任务进度和总结，下载 Excel，停止或删除历史任务。
 - **Vue 管理界面**：提供任务、模板、模型配置和知识库的完整管理页面。
 
@@ -34,7 +35,7 @@ Vue 3 + Vite SPA
         │ /api/v1
         ▼
 FastAPI
- ├── 认证、任务、模板、模型配置、知识库 API
+ ├── 认证、任务、模板、模型配置、知识库、检索测试 API
  ├── LangGraph 测试用例工作流
  ├── 文档解析与结果导出
  ├── SQLite（任务与配置）
@@ -208,6 +209,26 @@ LANGSMITH_HIDE_OUTPUTS=true
 
 系统会以任务和工作流线程 ID 关联 RAG、四阶段生成及澄清恢复的 trace。输入和输出默认隐藏，以避免向 LangSmith 发送需求文档、RAG 片段、澄清内容和生成结果；请仅在确认数据合规后调整这些开关。API Key 只能通过后端运行环境注入，不得提交、写入 Docker 镜像或发送至前端。
 
+## 检索测试页
+
+侧边栏「检索测试」是一个独立的业务知识库问答页，与知识库 RAG 相互独立：
+
+- **检索**：BM25 在浏览器内执行，页面加载时一次性拉取知识块索引（`backend/data/retrieval/chunks.jsonl`，约 4500 块），支持按集合（业务知识 / 操作手册 / 元文档 / Skill）过滤。
+- **生成**：右上角下拉选择「模型配置」中已配置厂商的文本模型（自动过滤语音、Embedding 等非文本模型），后端以流式代理转发 `/chat/completions`，回答带【n】引用编号，对应右侧命中的知识块（含评分、章节面包屑、版本与源文件）。
+- **降级**：未选择模型或 LLM 调用失败时，自动降级为抽取式回答（直接摘录命中块关键句）。
+
+### 索引文件生成
+
+`chunks.jsonl` 不入库（`backend/data/` 已被 .gitignore 排除），由业务知识库仓库的切块脚本生成后拷入：
+
+```bash
+# 在业务知识库仓库执行，产物为 build/chunks.jsonl
+node scripts/chunk-all.mjs
+
+# 拷入本仓库（或用环境变量 KB_CHUNKS_PATH 指向任意路径）
+cp build/chunks.jsonl backend/data/retrieval/chunks.jsonl
+```
+
 ## API 概览
 
 所有业务接口使用 `/api/v1` 前缀，并通过 Bearer Token 鉴权。
@@ -219,6 +240,7 @@ LANGSMITH_HIDE_OUTPUTS=true
 | 模板 | 模板列表、创建、更新、删除 |
 | 模型配置 | 供应商配置、模型列表、模型拉取、连接测试 |
 | 知识库 | Embedding 厂商、项目 CRUD、文档上传/删除、向量检索 |
+| 检索测试 | 知识块索引下发（`GET /retrieval-test/chunks`）、LLM 流式问答代理（`POST /retrieval-test/chat`） |
 
 完整请求和响应定义请访问运行中的 Swagger：<http://localhost:8080/docs>。
 
@@ -239,12 +261,13 @@ LANGSMITH_HIDE_OUTPUTS=true
 .
 ├── backend/
 │   ├── app/
-│   │   ├── api/                 # 认证、任务、模板、模型配置、知识库 API
+│   │   ├── api/                 # 认证、任务、模板、模型配置、知识库、检索测试 API
 │   │   ├── core/                # 配置、数据库、鉴权
 │   │   ├── models/              # SQLAlchemy 模型
 │   │   ├── schemas/             # Pydantic 请求与响应模型
 │   │   └── services/            # 工作流、文档解析、RAG、结果导出
 │   ├── config/prompts/          # 工作流 Prompt
+│   ├── data/retrieval/          # 检索测试页的知识块索引（不入库，见下文）
 │   └── pyproject.toml
 ├── frontend/                    # 当前 Vue 3 前端
 │   ├── src/components/          # 任务、模板、知识库及通用组件
@@ -274,6 +297,7 @@ docker build -t test-case-generator .
 - 澄清恢复、任务进度和取消标记保存在后端进程内存中；后端重启后，处于澄清状态的任务无法恢复。
 - PDF 解析提取嵌入文本、表格和有效图片，不包含 OCR。
 - 知识库文档向量化依赖已配置且支持 Embedding 的供应商。
+- 检索测试页依赖 `backend/data/retrieval/chunks.jsonl` 索引文件；文件缺失时页面可打开但无法检索（需按上文步骤生成并拷入）。
 - Anthropic 专用工作流路径需要安装 `langchain-anthropic`；如未安装，该路径会提示依赖缺失。
 
 ## License
